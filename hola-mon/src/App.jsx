@@ -2,7 +2,9 @@ import { useState } from 'react'
 import Comptador from './components/Comptador.jsx'
 import Targeta from './components/Targeta.jsx' 
 import FormulariTasca from './components/FormulariTasca.jsx'
+import LlistaTasques from './components/LlistaTasques.jsx'
 
+//COMPTADOR
 function App() {
   const [comptador, setComptador] = useState(0)
  //FITXA 2
@@ -25,7 +27,7 @@ function App() {
     tipus = 'error'
   }
 
-  //FITXA 3
+  //FITXA 3 TASQUES
 
   const [tasques, setTasques] =useState([])
 
@@ -38,6 +40,27 @@ function App() {
     setTasques((anteriors) => [...anteriors, novaTasca])
   }
 
+  //MARCAR TASCA FETA
+
+  function toggleTasca(id) {
+    setTasques((anteriors) =>
+      anteriors.map((tasca) =>
+        tasca.id === id ? {...tasca, feta: !tasca.feta} : tasca
+      )
+    )
+  }
+
+  //ELIMINAR TASCA
+
+  function eliminaTasca (id) {
+    setTasques((anteriors) =>
+      anteriors.filter((tasca) => tasca.id !== id)
+    )
+  }
+
+  //COMPTADOR DE TASCQUES PENDENTS
+
+  const tasquesPendents = tasques.filter((tasca) => !tasca.feta).length
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-slate-100 p-4">
       <Targeta titol="El meu Comptador">
@@ -51,14 +74,18 @@ function App() {
       </Targeta>
       <Targeta titol="Les meves tasques">
         <FormulariTasca onAfegir={afegeixTasca}/>
-        <ul className='w-full mt-6 space-y-2'>
-          {tasques.map((tasca) => (
-            <li key="{tasca.id}" className='p-3 bg-white border border-slate-200 rounded-lg shadow-sm'>
-              {tasca.text}
-            </li>
-          ))}
 
-        </ul>
+        <div className='mt-4 text-center font-medium text-slate-600'>
+          {tasquesPendents === 0
+          ? "Totes les tasques completades!!"
+          : `Et queden ${tasquesPendents} tasques pendents.`}
+
+        </div>
+        <LlistaTasques
+        tasques={tasques}
+        onToggle={toggleTasca}
+        onElimina={eliminaTasca}
+        />
         
       </Targeta>
 
