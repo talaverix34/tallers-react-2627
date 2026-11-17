@@ -1,11 +1,13 @@
 
 import Boto from './Boto.jsx'
 import Missatge from './Missatge.jsx'
-import { useState } from 'react'
+import { useState, useContext } from 'react'
+import { TasquesContext } from '../context/TasquesContext.js'
 
-function FormulariTasca({ onAfegir }) {
+function FormulariTasca({}) {
   const [text, setText] = useState('')
   const [error, setError] = useState('')
+  const { afegeixTasca } = useContext(TasquesContext)
 
   function envia(e) {
     e.preventDefault()
@@ -15,7 +17,7 @@ function FormulariTasca({ onAfegir }) {
         setError('La tasca no pot estar buida!!')
     return
     }
-    onAfegir(net)
+    afegeixTasca(net)
     setText('')
     setError('')
   }

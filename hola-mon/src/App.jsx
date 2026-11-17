@@ -1,14 +1,16 @@
-import { useState } from 'react'
+import { useState, useContext } from 'react'
+import { TasquesContext } from './context/TasquesContext.js'
 import Comptador from './components/Comptador.jsx'
 import Targeta from './components/Targeta.jsx'
 import FormulariTasca from './components/FormulariTasca.jsx'
 import LlistaTasques from './components/LlistaTasques.jsx'
 import FiltreTasques from './components/FiltreTasques.jsx'
 
-//COMPTADOR
 function App() {
+  // COMPTADOR
   const [comptador, setComptador] = useState(0)
-  //FITXA 2
+  
+  // FITXA 2
   function canvia(delta) {
     setComptador((anterior) => anterior + delta)
   }
@@ -28,61 +30,15 @@ function App() {
     tipus = 'error'
   }
 
-  //FITXA 3 TASQUES
+  // FITXA 3 i 4: TASQUES AMB CONTEXT
+  const { tasques } = useContext(TasquesContext)
 
-  const [tasques, setTasques] = useState([])
-
-  function afegeixTasca(textRebut) {
-    const novaTasca = {
-      id: crypto.randomUUID(),
-      text: textRebut,
-      feta: false,
-    }
-    setTasques((anteriors) => [...anteriors, novaTasca])
-  }
-
-  //MARCAR TASCA FETA
-
-  function toggleTasca(id) {
-    setTasques((anteriors) =>
-      anteriors.map((tasca) =>
-        tasca.id === id ? { ...tasca, feta: !tasca.feta } : tasca
-      )
-    )
-  }
-
-  //ELIMINAR TASCA
-
-  function eliminaTasca(id) {
-    setTasques((anteriors) =>
-      anteriors.filter((tasca) => tasca.id !== id)
-    )
-  }
-
-  //FILTRES
-
+  // ESTAT DEL FILTRE (Això és el que faltava)
   const [filtre, setFiltre] = useState('totes')
 
-  const tasquesFiltrades = tasques.filter((tasca) => {
-    if (filtre === 'pendents') return !tasca.feta
-    if (filtre === 'fetes') return tasca.feta
-    return true // Si és 'totes', les deixem passar totes
-  })
-
-  //COMPTADOR DE TASCQUES PENDENTS
-
+  // COMPTADORS DE TASQUES PENDENTS I FETES
   const tasquesPendents = tasques.filter((tasca) => !tasca.feta).length
   const tasquesFetes = tasques.filter((tasca) => tasca.feta).length
-
-  // MISSATGE DE LLISTA BUIDA
-  let missatgeBuit = 'Encara no hi ha tasques. Afegeix-ne una.'
-  if (tasques.length > 0) {
-    if (filtre === 'pendents') {
-      missatgeBuit = 'No hi ha tasques pendents. Bona feina!'
-    } else if (filtre === 'fetes') {
-      missatgeBuit = 'Encara no has marcat cap tasca com a feta.'
-    }
-  }
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-slate-100 p-4">
@@ -95,8 +51,9 @@ function App() {
           onReinicia={reiniciar}
         />
       </Targeta>
+      
       <Targeta titol="Les meves tasques">
-        <FormulariTasca onAfegir={afegeixTasca} />
+        <FormulariTasca />
 
         <div className='mt-4 flex justify-center gap-4 text-sm font-medium text-slate-600'>
           <span>Pendents: {tasquesPendents}</span>
@@ -106,15 +63,8 @@ function App() {
 
         <FiltreTasques filtre={filtre} onCanviaFiltre={setFiltre} />
 
-        <LlistaTasques
-          tasques={tasquesFiltrades}
-          onToggle={toggleTasca}
-          onElimina={eliminaTasca}
-          missatgeBuit={missatgeBuit}
-        />
-
+        <LlistaTasques filtre={filtre} />
       </Targeta>
-
     </main>
   )
 }
