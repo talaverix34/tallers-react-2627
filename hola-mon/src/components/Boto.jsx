@@ -10,7 +10,9 @@ function Boto({ variant = 'primari', className = '', children, ...props }) {
   return (
     <button
       type="button"
-      className={`rounded-lg px-4 py-2 font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${estilVariant} ${className}`}
+      className={`rounded-lg px-4 py-2 font-semibold transition
+         disabled:cursor-not-allowed disabled:opacity-50
+          ${estilVariant} ${className}`}
       {...props}
     >
       {children}
