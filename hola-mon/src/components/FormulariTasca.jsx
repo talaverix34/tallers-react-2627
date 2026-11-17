@@ -1,22 +1,32 @@
 
 import Boto from './Boto.jsx'
-
+import Missatge from './Missatge.jsx'
 import { useState } from 'react'
 
 function FormulariTasca({ onAfegir }) {
   const [text, setText] = useState('')
+  const [error, setError] = useState('')
 
   function envia(e) {
     e.preventDefault()
 
     const net = text.trim()
-    if (!net) return
+    if (!net) {
+        setError('La tasca no pot estar buida!!')
+    return
+    }
     onAfegir(net)
     setText('')
+    setError('')
+  }
+
+  function gestionarCanvi(e) {
+    setText(e.target.value)
+    if (error) setError('')
   }
 
   return (
-    <form onSubmit={envia}>
+    <form onSubmit={envia} noValidate>
         <label htmlFor='tasca'>Nova tasca</label>
         <input id='tasca' type='text' value={text} 
         onChange={(e) => setText(e.target.value)}
@@ -24,7 +34,18 @@ function FormulariTasca({ onAfegir }) {
           autoComplete="off"
           className="border border-slate-300 rounded-lg px-4 py-2 my-4 mx-2
           focus:outline-none focus:ring-2 focus:ring-cyan-500"/>
-        <Boto type='submit'>Afegeix</Boto>
+          <p className="text-right text-sm text-slate-500 mb-2">
+          {text.length}/80
+        </p>
+
+        {error && (
+          <div id="error-tasca" className="mb-4 text-red-600">
+            <Missatge text={error} tipus="error" />
+          </div>
+        )}
+        <div className="flex justify-center mt-2">
+          <Boto type='submit'>Afegeix</Boto>
+        </div>
 
     </form>
     

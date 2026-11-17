@@ -8,6 +8,7 @@ function Boto({ variant = 'primari', className = '', children, ...props }) {
   const estilVariant = ESTILS[variant] ?? ESTILS.primari
 
   return (
+    
     <button
       type="button"
       className={`rounded-lg px-4 py-2 font-semibold transition
@@ -17,6 +18,10 @@ function Boto({ variant = 'primari', className = '', children, ...props }) {
     >
       {children}
     </button>
+      
+
+    
+    
   )
 }
 
