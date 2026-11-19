@@ -35,9 +35,9 @@ App
     └── Tasca             ← tasca, onToggle, onElimina
 ```
 
-`LlistaTasques` no utilitza `onToggle` ni `onElimina`: només els transporta fins a `Tasca`. Això és **prop drilling**.
+`LlistaTasques` no utilitza `onToggle` ni `onElimina`: només els transporta fins a `Tasca`. Això s'anomena **prop drilling**.
 
-Amb context, l’estat i les accions viuran a `TasquesProvider`. Els components que els necessitin els podran llegir directament:
+Amb el context, que veurem encabat, l’estat i les accions viuran a `TasquesProvider`. Els components que els necessitin els podran llegir directament:
 
 ```text
 main.jsx
@@ -48,9 +48,12 @@ main.jsx
             └── Tasca       ← context + prop tasca
 ```
 
-El filtre continuarà sent estat local d’`App` i es passarà per props. No hi ha prop drilling: només viatja un nivell fins a `FiltreTasques` i `LlistaTasques`.
+
+El filtre, en aquesta fitxa, continuarà sent estat local d’`App` i es passarà per props. No hi ha prop drilling: només viatja un nivell fins a `FiltreTasques` i `LlistaTasques`.
 
 ### 1.2 Les tres peces del context
+
+Aquest punt és força abstracte: fes una primera lectura de les tres peces. A l’activitat 1 les connectaràs construint el codi complet.
 
 #### 1. Crear-lo
 
@@ -70,7 +73,13 @@ export const TasquesContext = createContext(null)
 </TasquesContext.Provider>
 ```
 
-El provider posa `value` a disposició de tots els descendents.
+El provider ofereix dades als components que hi ha dins seu, encara que estiguin diversos nivells més avall. A `value={value}`, el primer `value` és el nom fix de la propietat del provider; el segon és una variable nostra amb les dades i funcions que compartim. Podríem anomenar aquesta variable `dadesCompartides` i escriure `value={dadesCompartides}`.
+
+`children` és la prop que rep el contingut escrit entre les etiquetes de `TasquesProvider`. Si escrivim `<TasquesProvider><App /></TasquesProvider>`, `{children}` representa `<App />` i el col·loca dins de `TasquesContext.Provider`.
+
+Les dades **no es converteixen automàticament en props**: cada descendent que les necessita les llegeix amb `useContext`, com veurem tot seguit.
+
+Amplia-ho a l’[annex sobre `value`, `children` i els descendents](Annexos/Fitxa04_Annex_Provider_Value_Children.md), amb un exemple executable.
 
 #### 3. Consumir-lo
 
@@ -168,7 +177,7 @@ import { createContext } from 'react'
 export const TasquesContext = createContext(null)
 ```
 
-**Comprovació:** el fitxer només crea i exporta el context; no conté cap hook personalitzat.
+**Comprovació:** el fitxer només crea i exporta el context. No cal comprovar res.
 
 ### Esglaó 2 — Crear el provider
 
@@ -206,7 +215,7 @@ function TasquesProvider({ children }) {
     setTasques((anteriors) => anteriors.filter((tasca) => tasca.id !== id))
   }
 
-  const value = { tasques, afegeixTasca, toggleTasca, eliminaTasca }
+  const value = { tasques, afegeixTasca, toggleTasca, eliminaTasca } // Tot el que tenim dins
 
   return (
     <TasquesContext.Provider value={value}>

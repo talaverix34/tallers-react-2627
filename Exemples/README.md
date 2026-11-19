@@ -18,4 +18,7 @@ acumulatiu de les activitats.
   assignació d'un valor fix. Complementa l'[annex de la Fitxa 01](../Annexos/Fitxa01_Annex_Actualitzacio_Estat.md).
 - [Fitxa 02 — Pare, fills i esborrat de productes](Fitxa02/README.md): estat al
   pare, una filera per producte i callback per esborrar-lo. Complementa
-  l'[annex de la Fitxa 02](../Annexos/Fitxa02_Annex_Pare_Fills_Esborrar.md).
+   l'[annex de la Fitxa 02](../Annexos/Fitxa02_Annex_Pare_Fills_Esborrar.md).
+- [Fitxa 04 — Provider, valor i descendents](Fitxa04/README.md): dos consumidors
+  comparteixen tasques sense props intermèdies i un component queda fora del provider.
+  Complementa l’[annex de la Fitxa 04](../Annexos/Fitxa04_Annex_Provider_Value_Children.md).

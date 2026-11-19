@@ -19,7 +19,7 @@ fas servir Git: [git-scm.com](https://git-scm.com/downloads).
 
 1. [Fitxa 01 — Iniciació a React i Tailwind](Fitxa01.md)
 2. [Fitxa 02 — Components i props](Fitxa02.md)
-3. [Fitxa 03 — Estat i formularis](Fitxa03.md)
+3. [Fitxa 03 — Estat i formularis](Fitxa03.md) ([versió alternativa: teoria abans de cada activitat](Fitxa03_alternativa.md))
 4. [Fitxa 04 — Context i estat compartit](Fitxa04.md)
 5. [Fitxa 05 — Persistència amb localStorage](Fitxa05.md)
 6. [Fitxa 06 — Navegació amb React Router](Fitxa06.md)
@@ -35,6 +35,7 @@ Els annexos amplien conceptes concrets sense allargar les fitxes principals:
 
 - [Fitxa 01 — Actualització de l'estat amb useState](Annexos/Fitxa01_Annex_Actualitzacio_Estat.md)
 - [Fitxa 02 — Components pare i fills: esborrar productes](Annexos/Fitxa02_Annex_Pare_Fills_Esborrar.md)
+- [Fitxa 04 — Provider: `value`, `children` i descendents](Annexos/Fitxa04_Annex_Provider_Value_Children.md)
 
 Els projectes per provar aquests conceptes són a
 [`Exemples/`](Exemples/README.md), agrupats per fitxa. Cada projecte inclou
@@ -42,6 +43,7 @@ instruccions per executar-lo i indicacions sobre què cal observar.
 
 - [Fitxa 01 — Experimenta amb l'actualització de l'estat](Exemples/Fitxa01/README.md)
 - [Fitxa 02 — Experimenta amb callbacks i l'esborrat de productes](Exemples/Fitxa02/README.md)
+- [Fitxa 04 — Experimenta amb el valor del provider](Exemples/Fitxa04/README.md)
 
 ## Recursos oficials
 
