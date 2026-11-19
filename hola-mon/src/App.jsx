@@ -6,43 +6,42 @@ import FormulariTasca from './components/FormulariTasca.jsx'
 import LlistaTasques from './components/LlistaTasques.jsx'
 import FiltreTasques from './components/FiltreTasques.jsx'
 
-
- //DESAR FILTRE LOCAL
-const CLAU_FILTRE = 'hola-mon-filtre'
+// DESAR FILTRE LOCAL
+const CLAU_FILTRE = 'hola-mon.filtre'
 const FILTRES_VALIDS = ['totes', 'pendents', 'fetes']
 
 function llegeixFiltre() {
   try {
     const guardat = localStorage.getItem(CLAU_FILTRE)
-
     if (!guardat) return 'totes'
 
     const valor = JSON.parse(guardat)
     return FILTRES_VALIDS.includes(valor) ? valor : 'totes'
-
-  }catch{
+  } catch {
     return 'totes'
   }
-    
 }
 
 function App() {
   // COMPTADOR
   const [comptador, setComptador] = useState(0)
-  // ESTAT DEL FILTRE
+
+  // ESTAT DEL FILTRE (Inicialitzador mandrós)
   const [filtre, setFiltre] = useState(llegeixFiltre)
 
+  // FITXA 3 i 4: TASQUES AMB CONTEXT
+  const { tasques } = useContext(TasquesContext)
 
+  // PERSISTÈNCIA DEL FILTRE
   useEffect(() => {
     try {
       localStorage.setItem(CLAU_FILTRE, JSON.stringify(filtre))
-    }catch{
-
+    } catch {
+      // L'aplicació continua funcionant en memòria si falla el localStorage
     }
   }, [filtre])
 
-
-  // FITXA 2
+  // FITXA 2: FUNCIONS DEL COMPTADOR
   function canvia(delta) {
     setComptador((anterior) => anterior + delta)
   }
@@ -62,18 +61,9 @@ function App() {
     tipus = 'error'
   }
 
-  // FITXA 3 i 4: TASQUES AMB CONTEXT
-  const { tasques } = useContext(TasquesContext)
-
-  
-
-  // COMPTADORS DE TASQUES PENDENTS I FETES
+  // COMPTADORS DE TASQUES PENDENTS I FETES (Estat derivat)
   const tasquesPendents = tasques.filter((tasca) => !tasca.feta).length
   const tasquesFetes = tasques.filter((tasca) => tasca.feta).length
-
- 
-
-  
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-slate-100 p-4">
@@ -81,6 +71,7 @@ function App() {
         <Comptador
           valor={comptador}
           missatge={missatge}
+          tipus={tipus}
           pas={1}
           onCanvia={canvia}
           onReinicia={reiniciar}
@@ -90,7 +81,7 @@ function App() {
       <Targeta titol="Les meves tasques">
         <FormulariTasca />
 
-        <div className='mt-4 flex justify-center gap-4 text-sm font-medium text-slate-600'>
+        <div className="mt-4 flex justify-center gap-4 text-sm font-medium text-slate-600">
           <span>Pendents: {tasquesPendents}</span>
           <span>|</span>
           <span>Fetes: {tasquesFetes}</span>

@@ -5,13 +5,32 @@ import { TasquesContext } from './TasquesContext'
 
 const CLAU_TASQUES = 'hola-mon.tasques'
 
+function esTascaValida(tasca) {
+  return (
+    tasca !== null &&
+    typeof tasca === 'object' &&
+    typeof tasca.id === 'string' &&
+    typeof tasca.text === 'string' &&
+    typeof tasca.feta === 'boolean'
+  )
+}
+
+function esLlistaDeTasques(valor) {
+  return Array.isArray(valor) && valor.every(esTascaValida)
+}
+
 function llegeixTasques() {
-  const guardades = localStorage.getItem(CLAU_TASQUES)
+  try {
+    const guardades = localStorage.getItem(CLAU_TASQUES)
 
   if (!guardades) return []
 
   const dades = JSON.parse(guardades)
-  return Array.isArray(dades) ? dades : []
+  return esLlistaDeTasques(dades) ? dades : []
+  }catch{
+    return []
+  }
+  
 }
 
 function TasquesProvider({ children }) {
