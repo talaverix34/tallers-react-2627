@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react'
+import { useState, useContext, useEffect } from 'react'
 import { TasquesContext } from './context/TasquesContext.js'
 import Comptador from './components/Comptador.jsx'
 import Targeta from './components/Targeta.jsx'
@@ -6,10 +6,42 @@ import FormulariTasca from './components/FormulariTasca.jsx'
 import LlistaTasques from './components/LlistaTasques.jsx'
 import FiltreTasques from './components/FiltreTasques.jsx'
 
+
+ //DESAR FILTRE LOCAL
+const CLAU_FILTRE = 'hola-mon-filtre'
+const FILTRES_VALIDS = ['totes', 'pendents', 'fetes']
+
+function llegeixFiltre() {
+  try {
+    const guardat = localStorage.getItem(CLAU_FILTRE)
+
+    if (!guardat) return 'totes'
+
+    const valor = JSON.parse(guardat)
+    return FILTRES_VALIDS.includes(valor) ? valor : 'totes'
+
+  }catch{
+    return 'totes'
+  }
+    
+}
+
 function App() {
   // COMPTADOR
   const [comptador, setComptador] = useState(0)
-  
+  // ESTAT DEL FILTRE
+  const [filtre, setFiltre] = useState(llegeixFiltre)
+
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(CLAU_FILTRE, JSON.stringify(filtre))
+    }catch{
+
+    }
+  }, [filtre])
+
+
   // FITXA 2
   function canvia(delta) {
     setComptador((anterior) => anterior + delta)
@@ -33,12 +65,15 @@ function App() {
   // FITXA 3 i 4: TASQUES AMB CONTEXT
   const { tasques } = useContext(TasquesContext)
 
-  // ESTAT DEL FILTRE (Això és el que faltava)
-  const [filtre, setFiltre] = useState('totes')
+  
 
   // COMPTADORS DE TASQUES PENDENTS I FETES
   const tasquesPendents = tasques.filter((tasca) => !tasca.feta).length
   const tasquesFetes = tasques.filter((tasca) => tasca.feta).length
+
+ 
+
+  
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-slate-100 p-4">
