@@ -24,6 +24,8 @@
 
 ## 1. Teoria
 
+> **Com llegir-la:** abans de l’Activitat 1, centra’t en els apartats 1.1–1.5 (què es desa, JSON i lectura/escriptura); per a l’Activitat 2, recupera l’1.6 (qui és propietari de cada estat); abans de l’Activitat 3, llegeix 1.7–1.8 (validació i errors). Els fragments són exemples: fes els canvis quan t’ho demanin els esglaons.
+
 ### 1.1 On som i què persistirem
 
 La Fitxa 04 ha deixat aquesta estructura:
@@ -92,9 +94,25 @@ const recuperades = JSON.parse(text)
 - `JSON.parse()` recupera el valor.
 - `JSON.parse()` llança un error si el text no és JSON vàlid.
 
-### 1.4 Inicialitzador mandrós de `useState`
+### 1.4 *Lazy initialization* (inicialització diferida) de `useState`
 
-Per llegir només quan es crea l’estat, passa una funció a `useState`:
+`llegeixTasques` és una funció que definirem a l’Activitat 1. Consulta `localStorage` i retorna una llista de tasques, o `[]` si no n’hi ha cap. Per exemple:
+
+```js
+const CLAU_TASQUES = 'hola-mon.tasques'
+
+function llegeixTasques() {
+  const guardades = localStorage.getItem(CLAU_TASQUES)
+  if (!guardades) return []
+
+  const dades = JSON.parse(guardades)
+  return Array.isArray(dades) ? dades : []
+}
+```
+
+`CLAU_TASQUES` és el nom de la clau on desem la llista. En aquesta primera versió, un JSON corrupte encara pot provocar un error; hi afegirem `try/catch` a l’Activitat 3.
+
+Per llegir el valor inicial sense tornar a consultar `localStorage` en cada render, passa **la funció**, sense cridar-la, a `useState`:
 
 ```jsx
 const [tasques, setTasques] = useState(llegeixTasques)
@@ -106,20 +124,22 @@ Evita aquesta forma:
 const [tasques, setTasques] = useState(llegeixTasques())
 ```
 
-Amb els parèntesis, `llegeixTasques()` s’avalua en cada render encara que React només utilitzi el resultat inicial. Sense parèntesis, React la fa servir com a **inicialitzador mandrós**.
+Amb els parèntesis, `llegeixTasques()` s’avalua en cada render encara que React només utilitzi el resultat inicial. Sense parèntesis, React rep la funció com a **lazy initializer** (funció inicialitzadora diferida) i la crida per obtenir l’estat inicial.
 
 En desenvolupament, `StrictMode` pot cridar l’inicialitzador dues vegades per comprovar que és pur. Llegir `localStorage` no modifica dades i és segur.
 
 ### 1.5 Desar amb `useEffect`
 
-Desar a `localStorage` és un efecte secundari. No ho facis durant el render:
+React mostra les tasques a la pantalla. `localStorage`, en canvi, en guarda una còpia perquè no desapareguin en recarregar la pàgina. **Mostrar** i **desar** són dues feines diferents.
+
+Desar dades amb localStorage.setItem() modifica un sistema extern a React; això s’anomena un efecte secundari. No posis aquesta instrucció directament al cos del component o de TasquesProvider, perquè s’executaria cada vegada que React el renderitzés —per exemple, quan canviés qualsevol variable d’estat—, encara que les tasques no haguessin canviat.
 
 ```jsx
-// Incorrecte: modifica una API externa durant el render
+// Incorrecte dins de TasquesProvider: s'escriu cada cop que React el processa
 localStorage.setItem(CLAU_TASQUES, JSON.stringify(tasques))
 ```
 
-Fes-ho després del render:
+Per separar les dues feines, fes servir `useEffect` dins de `TasquesProvider` (important-lo de `react`). Així React mostrarà les tasques i **després** en desarà una còpia:
 
 ```jsx
 useEffect(() => {
@@ -127,23 +147,25 @@ useEffect(() => {
 }, [tasques])
 ```
 
-L’efecte s’executa després del primer render i quan canvia la referència de `tasques`.
+Aquí `JSON.stringify(tasques)` converteix la llista en text i `setItem` la desa a la clau definida a l’apartat 1.4. L’array `[tasques]` indica a React quan ha de tornar a executar l’efecte: **després del primer render** i, després, cada vegada que canviï `tasques`. Per això també es desa l’estat inicial encara que l’usuari no hagi fet cap acció.
 
-| Dependències | Comportament |
+| Dependències de `useEffect` | Quan s’executa |
 | --- | --- |
-| `[tasques]` | En muntar i quan canvien les tasques. |
-| `[]` | Només en muntar. |
+| `[tasques]` | Després del primer render i quan canvien les tasques: és l’opció que necessitem. |
+| `[]` | Després del primer render, però no quan canviïn les tasques. |
 | Sense array | Després de cada render. |
 
-La seqüència correcta és:
+En desenvolupament, `StrictMode` pot executar l’efecte més d’un cop en muntar el component. Desar dues vegades el **mateix valor** a la mateixa clau no duplica les tasques.
+
+La seqüència queda així:
 
 ```text
-llegir valor inicial → useState
-calcular interfície → render
-desar quan canvia → useEffect
+llegir valor inicial → useState(llegeixTasques)
+mostrar les tasques → React
+desar-ne una còpia → useEffect (després de mostrar-les i quan canvien)
 ```
 
-No facis servir efectes per calcular llistes filtrades o comptadors: deriva’ls directament durant el render.
+**Recorda:** React mostra les tasques; `useEffect` en desa una còpia a `localStorage`. Les llistes filtrades i els comptadors no s’han de desar ni calcular amb efectes: calcula’ls directament a partir de les tasques.
 
 ### 1.6 Dos propietaris, una mateixa tècnica
 
@@ -161,7 +183,7 @@ Això no obliga a crear un context nou. `App` ja és el propietari natural del f
 
 Durant les activitats 1 i 2 escriurem dues vegades el mateix patró per entendre’l:
 
-1. llegir amb un inicialitzador mandrós;
+1. llegir amb *lazy initialization*;
 2. validar el valor;
 3. desar-lo amb un efecte.
 
@@ -255,6 +277,8 @@ src/
 
 **Temps estimat:** 50 minuts.
 
+**Abans de començar:** si ja hi ha un valor malmès a `hola-mon.tasques`, la lectura d’aquesta activitat pot fallar perquè encara no incorpora `try/catch`. Esborra només aquesta clau des de les eines del navegador i recarrega; la protecció contra dades corruptes arribarà a l’Activitat 3.
+
 ### Esglaó 1 — Llegir les tasques
 
 A `TasquesProvider.jsx`, importa `useEffect` i defineix:
@@ -274,7 +298,7 @@ function llegeixTasques() {
 
 En aquesta primera activitat encara no capturem JSON corrupte; ho farem a l’Activitat 3.
 
-### Esglaó 2 — Inicialitzar mandrosament
+### Esglaó 2 — Aplicar *lazy initialization*
 
 Substitueix:
 
@@ -300,10 +324,11 @@ Comprova que afegir, completar i eliminar actualitza `hola-mon.tasques`.
 
 ### Esglaó 4 — Provar les dependències
 
-1. Afegeix temporalment un `console.log` dins de l’efecte.
-2. Afegeix una tasca: ha d’aparèixer.
-3. Canvia el comptador o el filtre: no ha d’aparèixer.
-4. Elimina el log.
+1. Obre **Application → Storage → Local Storage** a les eines del navegador i selecciona l’origen on s’executa `hola-mon`.
+2. Afegeix una tasca i comprova que apareix la clau `hola-mon.tasques` amb el seu text. Recarrega la pàgina: la tasca ha de continuar visible.
+3. Afegeix temporalment un `console.log` dins de l’efecte i torna a afegir una tasca: el log ha d’aparèixer. En desenvolupament, `StrictMode` pot repetir l’efecte en muntar el component.
+4. Canvia el comptador o el filtre: el log de les tasques no hauria d’aparèixer.
+5. Elimina el log.
 
 **Comprovació final:** les tasques sobreviuen a una recàrrega, però el filtre encara torna a «Totes».
 
@@ -314,6 +339,8 @@ Comprova que afegir, completar i eliminar actualitza `hola-mon.tasques`.
 **Objectiu:** persistir el filtre dins d’`App` sense crear cap context ni provider nou.
 
 **Temps estimat:** 40 minuts.
+
+**Recorda:** aquí es valida un valor JSON que existeix, però encara no es captura un `JSON.parse` que falli. Si has introduït text que no és JSON a `hola-mon.filtre` i la pàgina no carrega, esborra només aquesta clau i recarrega. Ho protegiràs a l’Activitat 3.
 
 ### Esglaó 1 — Preparar la lectura
 
@@ -364,7 +391,7 @@ La persistència pertany al component que posseeix l’estat. Els components fil
 
 1. Selecciona «Pendents» i recarrega.
 2. Selecciona «Fetes» i recarrega.
-3. Escriu manualment `"inventat"` a `hola-mon.filtre`: ha de tornar a «Totes».
+3. A **Application → Storage → Local Storage**, escriu manualment `"inventat"` (amb cometes: és JSON vàlid) a `hola-mon.filtre` i recarrega: ha de tornar a «Totes».
 4. Comprova que la llista filtrada i els comptadors no es desen.
 
 **Comprovació final:** tasques i filtre sobreviuen, però continuen tenint propietaris diferents.
@@ -425,14 +452,14 @@ const [filtre, setFiltre] = useState(llegeixFiltre)
 
 ### Esglaó 4 — Treball posterior: dades corruptes
 
-Prova manualment:
+Des de **Application → Storage → Local Storage**, substitueix el valor de la clau indicada, recarrega la pàgina i observa el resultat. Prova els casos **d’un en un**: en recarregar, l’efecte pot desar el valor inicial i substituir el que acabes d’escriure. Si tens tasques que vols conservar, copia’n el JSON abans de fer aquestes proves.
 
-1. text que no sigui JSON a `hola-mon.tasques`;
-2. una tasca amb `id` numèric;
-3. una tasca amb `feta: "sí"`;
-4. un filtre `"inventat"`.
+1. A `hola-mon.tasques`, escriu `això-no-és-JSON`: la llista ha de quedar buida, sense bloquejar l’aplicació.
+2. A `hola-mon.tasques`, escriu `[{"id":7,"text":"Prova","feta":false}]`: la llista ha de quedar buida perquè l’`id` no és un string.
+3. A `hola-mon.tasques`, escriu `[{"id":"1","text":"Prova","feta":"sí"}]`: la llista ha de quedar buida perquè `feta` no és un booleà.
+4. A `hola-mon.filtre`, escriu `"inventat"` (amb cometes) i recarrega: el filtre ha de tornar a «Totes».
 
-En tots els casos, l’aplicació ha de continuar funcionant i recuperar el valor inicial.
+Els exemples de tasques són **text JSON per enganxar a `localStorage`**, no objectes JavaScript per escriure al codi. En tots els casos, l’aplicació ha de continuar funcionant i recuperar el valor inicial. Després de les proves, torna a afegir les tasques o restaura el JSON que hagis copiat.
 
 ### Esglaó 5 — Reptes opcionals
 
@@ -451,7 +478,7 @@ En tots els casos, l’aplicació ha de continuar funcionant i recuperar el valo
 - [ ] `TasquesProvider` persisteix `tasques` a `hola-mon.tasques`.
 - [ ] `App` és el propietari de `filtre` i el persisteix a `hola-mon.filtre`.
 - [ ] `FiltreTasques` i `LlistaTasques` continuen rebent el filtre per props.
-- [ ] La lectura inicial fa servir un inicialitzador mandrós.
+- [ ] La lectura inicial fa servir *lazy initialization*.
 - [ ] L’escriptura es fa després del render amb `useEffect`.
 - [ ] La lectura i l’escriptura capturen errors.
 - [ ] Les tasques i el filtre es validen.
@@ -472,6 +499,6 @@ Guarda `hola-mon`. A la [Fitxa 06](Fitxa06.md) afegirem React Router. `TasquesPr
 - `localStorage`: <https://developer.mozilla.org/ca/docs/Web/API/Window/localStorage>
 - `JSON.stringify()`: <https://developer.mozilla.org/ca/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify>
 - `JSON.parse()`: <https://developer.mozilla.org/ca/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse>
-- Inicialitzador mandrós: <https://react.dev/reference/react/useState#avoiding-recreating-the-initial-state>
+- *Lazy initialization*: <https://react.dev/reference/react/useState#avoiding-recreating-the-initial-state>
 - `useEffect`: <https://react.dev/reference/react/useEffect>
 - Esdeveniment `storage`: <https://developer.mozilla.org/ca/docs/Web/API/Window/storage_event>
