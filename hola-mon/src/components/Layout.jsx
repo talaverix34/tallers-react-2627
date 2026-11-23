@@ -16,10 +16,12 @@ function Layout() {
           <NavLink to="/tasques" className={classeEnllac}>
             Tasques
           </NavLink>
+          <NavLink to="/descobreix">
+            Descobreix
+          </NavLink>
         </nav>
       </header>
 
-      {/* Aquí es renderitzaran les pàgines (Inici, Tasques, etc.) */}
       <main className="grow p-4">
         <Outlet /> 
       </main>

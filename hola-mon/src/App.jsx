@@ -4,6 +4,7 @@ import PaginaInici from './pages/PaginaInici.jsx'
 import PaginaTasques from './pages/PaginaTasques.jsx'
 import PaginaDetallTasca from './pages/PaginaDetallTasca.jsx'
 import PaginaNoTrobada from './pages/PaginaNoTrobada.jsx'
+import PaginaDescobreix from './pages/PaginaDescobreix.jsx'
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Route path="tasques" element={<PaginaTasques />} />
         <Route path="tasques/:id" element={<PaginaDetallTasca />} />
         <Route path="*" element={<PaginaNoTrobada />} />
+        <Route path="descobreix" element={<PaginaDescobreix />} />
       </Route>
     </Routes>
   )
