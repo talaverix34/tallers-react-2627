@@ -1,0 +1,19 @@
+{
+  "tasques": [
+    {
+      "id": "1",
+      "text": "Repassar props i estat",
+      "feta": true
+    },
+    {
+      "id": "2",
+      "text": "Practicar useContext",
+      "feta": false
+    },
+    {
+      "id": "3",
+      "text": "Preparar el CRUD amb json-server",
+      "feta": false
+    }
+  ]
+}

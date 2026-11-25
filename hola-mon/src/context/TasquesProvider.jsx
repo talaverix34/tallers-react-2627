@@ -1,79 +1,164 @@
 import { useState, useEffect } from 'react'
 import { TasquesContext } from './TasquesContext'
-
-
-
-const CLAU_TASQUES = 'hola-mon.tasques'
-
-function esTascaValida(tasca) {
-  return (
-    tasca !== null &&
-    typeof tasca === 'object' &&
-    typeof tasca.id === 'string' &&
-    typeof tasca.text === 'string' &&
-    typeof tasca.feta === 'boolean'
-  )
-}
-
-function esLlistaDeTasques(valor) {
-  return Array.isArray(valor) && valor.every(esTascaValida)
-}
-
-function llegeixTasques() {
-  try {
-    const guardades = localStorage.getItem(CLAU_TASQUES)
-
-  if (!guardades) return []
-
-  const dades = JSON.parse(guardades)
-  return esLlistaDeTasques(dades) ? dades : []
-  }catch{
-    return []
-  }
-  
-}
+import {
+  obteTasques,
+  creaTasca,
+  actualitzaTasca,
+  eliminaTascaApi,
+} from '../api/tasques.js'
 
 function TasquesProvider({ children }) {
-  const [tasques, setTasques] = useState(llegeixTasques)
+  const [tasques, setTasques] = useState([])
+  const [carregant, setCarregant] = useState(true)
+  const [error, setError] = useState('')
+  const [recarregar, setRecarregar] = useState(0)
+
+  const [enviant, setEnviant] = useState(false)
+  const [errorAccio, setErrorAccio] = useState('')
 
   useEffect(() => {
+    const controlador = new AbortController()
+
+    async function carrega() {
+      setCarregant(true)
+      setError('')
+
+      try {
+        const dades = await obteTasques(controlador.signal)
+        setTasques(dades)
+      } catch (err) {
+        if (err.name === 'AbortError') return
+        if (err.name === 'TypeError') {
+          setError(
+            "No s'ha pogut connectar amb l'API. Comprova que `npm run api` estigui en marxa.",
+          )
+        } else {
+          setError(err.message)
+        }
+      } finally {
+        if (!controlador.signal.aborted) {
+          setCarregant(false)
+        }
+      }
+    }
+
+    carrega()
+
+    return () => controlador.abort()
+  }, [recarregar])
+
+  function recarregaTasques() {
+    setRecarregar((n) => n + 1)
+  }
+
+  async function afegeixTasca(text) {
+    setEnviant(true)
+    setErrorAccio('')
+
     try {
-      localStorage.setItem(CLAU_TASQUES, JSON.stringify(tasques))
-    }catch{
-
+      const novaTasca = await creaTasca(text)
+      setTasques((anteriors) => [...anteriors, novaTasca])
+      return true
+    } catch (err) {
+      if (err.name === 'TypeError') {
+        setErrorAccio("No s'ha pogut connectar amb l'API per crear la tasca.")
+      } else {
+        setErrorAccio(err.message)
+      }
+      return false
+    } finally {
+      setEnviant(false)
     }
-  }, [tasques])
+  }
 
+  async function toggleTasca(id) {
+    const tascaActual = tasques.find((t) => t.id === id)
+    if (!tascaActual) return false
 
+    setEnviant(true)
+    setErrorAccio('')
 
-  function afegeixTasca(text) {
-    const novaTasca = {
-      id: crypto.randomUUID(),
-      text,
-      feta: false,
+    try {
+      const tascaActualitzada = await actualitzaTasca(id, {
+        feta: !tascaActual.feta,
+      })
+      setTasques((anteriors) =>
+        anteriors.map((tasca) => (tasca.id === id ? tascaActualitzada : tasca)),
+      )
+      return true
+    } catch (err) {
+      if (err.name === 'TypeError') {
+        setErrorAccio(
+          "No s'ha pogut connectar amb l'API per actualitzar la tasca.",
+        )
+      } else {
+        setErrorAccio(err.message)
+      }
+      return false
+    } finally {
+      setEnviant(false)
     }
-
-    setTasques((anteriors) => [...anteriors, novaTasca])
   }
 
-  function toggleTasca(id) {
-    setTasques((anteriors) =>
-      anteriors.map((tasca) =>
-        tasca.id === id ? { ...tasca, feta: !tasca.feta } : tasca,
-      ),
-    )
+  async function editaTasca(id, nouText) {
+    setEnviant(true)
+    setErrorAccio('')
+
+    try {
+      const tascaActualitzada = await actualitzaTasca(id, { text: nouText })
+      setTasques((anteriors) =>
+        anteriors.map((tasca) => (tasca.id === id ? tascaActualitzada : tasca)),
+      )
+      return true
+    } catch (err) {
+      if (err.name === 'TypeError') {
+        setErrorAccio("No s'ha pogut connectar amb l'API per editar la tasca.")
+      } else {
+        setErrorAccio(err.message)
+      }
+      return false
+    } finally {
+      setEnviant(false)
+    }
   }
 
-  function eliminaTasca(id) {
-    setTasques((anteriors) => anteriors.filter((tasca) => tasca.id !== id))
+  async function eliminaTasca(id) {
+    setEnviant(true)
+    setErrorAccio('')
+
+    try {
+      await eliminaTascaApi(id)
+      setTasques((anteriors) => anteriors.filter((tasca) => tasca.id !== id))
+      return true
+    } catch (err) {
+      if (err.name === 'TypeError') {
+        setErrorAccio(
+          "No s'ha pogut connectar amb l'API per eliminar la tasca.",
+        )
+      } else {
+        setErrorAccio(err.message)
+      }
+      return false
+    } finally {
+      setEnviant(false)
+    }
   }
 
-  const value = { tasques, afegeixTasca, toggleTasca, eliminaTasca }
+  const value = {
+    tasques,
+    carregant,
+    error,
+    enviant,
+    errorAccio,
+    recarregaTasques,
+    afegeixTasca,
+    toggleTasca,
+    editaTasca,
+    eliminaTasca,
+  }
 
   return (
-    <TasquesContext.Provider value={value}>
-      {children}
-    </TasquesContext.Provider>
+    <TasquesContext.Provider value={value}>{children}</TasquesContext.Provider>
   )
 }
 
